@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
   <head>
-    <title>Heart</title>
+    <title>Heart with Chain of C's</title>
     <meta name="Generator" content="EditPlus" />
     <meta name="Author" content="" />
     <meta name="Keywords" content="" />
@@ -18,19 +18,11 @@
         justify-content: center;
         align-items: center;
       }
-      h1 {
-        color: #ff5ca4;
-      }
       .box {
-        width: 100%;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        display: flex;
-        flex-direction: column;
+        width: 750px;
+        height: 750px;
+        position: relative;
       }
-
       canvas {
         position: absolute;
         width: 100%;
@@ -43,9 +35,6 @@
         width: 750px;
         animation: animate 2s infinite;
       }
-      h1 {
-        animation: animate 2s infinite;
-      }
       #pinkboard:before,
       #pinkboard:after {
         content: "";
@@ -56,7 +45,6 @@
         border-top-left-radius: 50px;
         border-top-right-radius: 50px;
       }
-
       #pinkboard:before {
         left: 100px;
         transform: rotate(-45deg);
@@ -64,13 +52,11 @@
         box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25),
           0 10px 10px rgba(0, 0, 0, 0.22);
       }
-
       #pinkboard:after {
         left: 0;
         transform: rotate(45deg);
         transform-origin: 100% 100%;
       }
-
       @keyframes animate {
         0% {
           transform: scale(1);
@@ -85,29 +71,59 @@
           transform: scale(1);
         }
       }
+      /* CSS cho dải chữ C bao quanh trái tim */
+      svg.heart-border {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 750px;
+        height: 750px;
+        pointer-events: none;
+      }
+      svg.heart-border text {
+        fill: #ff5ca4;
+        font-size: 24px;
+        font-family: Arial, sans-serif;
+        letter-spacing: 2px;
+      }
     </style>
   </head>
 
   <body>
     <div class="box">
+      <!-- Canvas vẽ trái tim -->
       <canvas id="pinkboard"></canvas>
+
+      <!-- SVG với dải chữ "C" nối liền nhau bao quanh trái tim -->
+      <svg class="heart-border" viewBox="0 0 750 750" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <!-- Vẽ một đường tròn có tâm (375,375) bán kính 250 -->
+          <path id="circlePath" d="M375,375 m -250,0 a 250,250 0 1,1 500,0 a 250,250 0 1,1 -500,0" />
+        </defs>
+        <text>
+          <textPath xlink:href="#circlePath" startOffset="0">
+            Chauiu Chauiu Chauiu Chauiu Chauiu Chauiu Chauiu Chauiu Chauiu Chauiu Chauiu Chauiu Chauiu Chauiu Chauiu Chauiu 
+          </textPath>
+        </text>
+      </svg>
     </div>
 
     <script>
       /*
-       * Settings
+       * Cấu hình
        */
       var settings = {
         particles: {
-          length: 10000, // maximum amount of particles
-          duration: 3.5, // particle duration in sec
-          velocity: 100, // particle velocity in pixels/sec
-          effect: -1.5, // play with this for a nice effect
-          size: 8, // particle size in pixels
+          length: 10000, // số lượng hạt tối đa
+          duration: 3.5, // thời gian tồn tại của hạt (giây)
+          velocity: 100, // vận tốc hạt (pixels/giây)
+          effect: -1.5, // điều chỉnh hiệu ứng
+          size: 8, // kích thước hạt (pixels)
         },
       };
+
       /*
-       * RequestAnimationFrame polyfill by Erik Möller
+       * Polyfill cho requestAnimationFrame
        */
       (function () {
         var b = 0;
@@ -135,8 +151,9 @@
           };
         }
       })();
+
       /*
-       * Point class
+       * Lớp Point
        */
       var Point = (function () {
         function Point(x, y) {
@@ -162,8 +179,9 @@
         };
         return Point;
       })();
+
       /*
-       * Particle class
+       * Lớp Particle
        */
       var Particle = (function () {
         function Particle() {
@@ -204,8 +222,9 @@
         };
         return Particle;
       })();
+
       /*
-       * ParticlePool class
+       * Lớp ParticlePool
        */
       var ParticlePool = (function () {
         var particles,
@@ -214,7 +233,7 @@
           duration = settings.particles.duration;
 
         function ParticlePool(length) {
-          // create and populate particle pool
+          // Tạo và khởi tạo mảng các hạt
           particles = new Array(length);
           for (var i = 0; i < particles.length; i++)
             particles[i] = new Particle();
@@ -222,7 +241,7 @@
         ParticlePool.prototype.add = function (x, y, dx, dy) {
           particles[firstFree].initialize(x, y, dx, dy);
 
-          // handle circular queue
+          // Xử lý vòng tròn
           firstFree++;
           if (firstFree == particles.length) firstFree = 0;
           if (firstActive == firstFree) firstActive++;
@@ -231,7 +250,7 @@
         ParticlePool.prototype.update = function (deltaTime) {
           var i;
 
-          // update active particles
+          // Cập nhật hạt đang hoạt động
           if (firstActive < firstFree) {
             for (i = firstActive; i < firstFree; i++)
               particles[i].update(deltaTime);
@@ -242,7 +261,7 @@
             for (i = 0; i < firstFree; i++) particles[i].update(deltaTime);
           }
 
-          // remove inactive particles
+          // Loại bỏ hạt hết hạn
           while (
             particles[firstActive].age >= duration &&
             firstActive != firstFree
@@ -252,7 +271,7 @@
           }
         };
         ParticlePool.prototype.draw = function (context, image) {
-          // draw active particles
+          // Vẽ các hạt đang hoạt động
           if (firstActive < firstFree) {
             for (i = firstActive; i < firstFree; i++)
               particles[i].draw(context, image);
@@ -265,17 +284,18 @@
         };
         return ParticlePool;
       })();
+
       /*
-       * Putting it all together
+       * Tích hợp tất cả lại với nhau
        */
       (function (canvas) {
         var context = canvas.getContext("2d"),
           particles = new ParticlePool(settings.particles.length),
           particleRate =
-            settings.particles.length / settings.particles.duration, // particles/sec
+            settings.particles.length / settings.particles.duration, // hạt/giây
           time;
 
-        // get point on heart with -PI <= t <= PI
+        // Hàm trả về điểm trên trái tim với -PI <= t <= PI
         function pointOnHeart(t) {
           return new Point(
             160 * Math.pow(Math.sin(t), 3),
@@ -287,13 +307,13 @@
           );
         }
 
-        // creating the particle image using a dummy canvas
+        // Tạo hình ảnh hạt trên canvas tạm thời
         var image = (function () {
           var canvas = document.createElement("canvas"),
             context = canvas.getContext("2d");
           canvas.width = settings.particles.size;
           canvas.height = settings.particles.size;
-          // helper function to create the path
+          // Hàm chuyển đổi tọa độ
           function to(t) {
             var point = pointOnHeart(t);
             point.x =
@@ -304,40 +324,33 @@
               (point.y * settings.particles.size) / 350;
             return point;
           }
-          // create the path
+          // Vẽ đường bao trái tim
           context.beginPath();
           var t = -Math.PI;
           var point = to(t);
           context.moveTo(point.x, point.y);
           while (t < Math.PI) {
-            t += 0.01; // baby steps!
+            t += 0.01;
             point = to(t);
             context.lineTo(point.x, point.y);
           }
           context.closePath();
-          // create the fill
           context.fillStyle = "#FF5CA4";
           context.fill();
-          // create the image
           var image = new Image();
           image.src = canvas.toDataURL();
           return image;
         })();
 
-        // render that thing!
+        // Hàm render
         function render() {
-          // next animation frame
           requestAnimationFrame(render);
-
-          // update time
           var newTime = new Date().getTime() / 1000,
             deltaTime = newTime - (time || newTime);
           time = newTime;
-
-          // clear canvas
           context.clearRect(0, 0, canvas.width, canvas.height);
 
-          // create new particles
+          // Tạo các hạt mới
           var amount = particleRate * deltaTime;
           for (var i = 0; i < amount; i++) {
             var pos = pointOnHeart(Math.PI - 2 * Math.PI * Math.random());
@@ -349,20 +362,15 @@
               -dir.y
             );
           }
-
-          // update and draw particles
           particles.update(deltaTime);
           particles.draw(context, image);
         }
 
-        // handle (re-)sizing of the canvas
         function onResize() {
           canvas.width = canvas.clientWidth;
           canvas.height = canvas.clientHeight;
         }
         window.onresize = onResize;
-
-        // delay rendering bootstrap
         setTimeout(function () {
           onResize();
           render();
